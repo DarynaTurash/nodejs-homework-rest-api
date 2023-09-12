@@ -39,23 +39,33 @@ const removeContact = async (req, res) => {
 
 const updateContact = async (req, res) => {
     const { contactId } = req.params;
-    const { name, email, phone } = req.body;
-
-    const updatedFields = {};
-    if (name) updatedFields.name = name;
-    if (email) updatedFields.email = email;
-    if (phone) updatedFields.phone = phone;
+    const contact = await contacts.getContactById(contactId);
+    
+    if (!contact) {
+        throw HttpError(404, "Not found");
+    }
+    
+    const updatedFields = req.body;
 
     if (Object.keys(updatedFields).length === 0) {
         return res.status(400).json({ message: 'No fields to update' });
     }
-
-    const result = await contacts.updateContact(contactId, updatedFields);
+    
+    for (const key in updatedFields) {
+        if (contact.hasOwnProperty(key)) {
+            contact[key] = updatedFields[key];
+        }
+    }
+    
+    const result = await contacts.updateContact(contactId, contact);
+    
     if (!result) {
         throw HttpError(404, "Not found");
     }
+    
     res.status(200).json(result);
 };
+
 
 module.exports = {
     listContacts: ctrlWrapper(listContacts),
