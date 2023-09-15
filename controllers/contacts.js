@@ -1,15 +1,15 @@
-const contacts = require('../models/contacts');
+const {Contact} = require("../models/contact");
 
 const { HttpError, ctrlWrapper } = require('../helpers/index');
 
 const listContacts = async (req, res) => {
-    const result = await contacts.listContacts();
+    const result = await Contact.find({}, "-createdAt -updatedAt");
     res.status(200).json(result);
 };
 
 const getContactById = async (req, res) => {
     const {contactId} = req.params;
-    const result = await contacts.getContactById(contactId);
+    const result = await Contact.findById(contactId);
     if (!result) {
         throw HttpError(404, "Not found");
     }
@@ -19,16 +19,16 @@ const getContactById = async (req, res) => {
 const addContact = async (req, res) => {
     const { name, email, phone } = req.body;
 
-    if (!name || !email || !phone) {
-        return res.status(400).json({ message: 'Missing required name, email, or phone field' });
+    if (!name) {
+        return res.status(400).json({ message: 'Missing required name field' });
     }
-    const result = await contacts.addContact(req.body);
+    const result = await Contact.create(req.body);
     res.status(201).json(result);
 };
 
 const removeContact = async (req, res) => {
     const { contactId } = req.params;
-    const result = await contacts.removeContact(contactId);
+    const result = await Contact.findByIdAndRemove(contactId);
     if (!result) {
         throw HttpError(404, "Not found");
     }
@@ -57,7 +57,7 @@ const updateContact = async (req, res) => {
         }
     }
     
-    const result = await contacts.updateContact(contactId, contact);
+    const result = await Contact.findByIdAndUpdate(contactId, contact, {new: true});
     
     if (!result) {
         throw HttpError(404, "Not found");
@@ -66,6 +66,17 @@ const updateContact = async (req, res) => {
     res.status(200).json(result);
 };
 
+const updateFavorite = async (req, res) => {
+    const { id } = req.params;
+    if(!req.body) {
+        return res.status(400).json({"message": "missing field favorite"});
+    }
+    const result = await Book.findByIdAndUpdate(id, req.body, {new: true});
+    if (!result) {
+        throw HttpError(404, "Not found");
+    }
+    res.json(result);
+}
 
 module.exports = {
     listContacts: ctrlWrapper(listContacts),
@@ -73,5 +84,6 @@ module.exports = {
     addContact: ctrlWrapper(addContact),
     updateContact: ctrlWrapper(updateContact),
     removeContact: ctrlWrapper(removeContact),
+    updateFavorite: ctrlWrapper(updateFavorite),
 }
 
