@@ -5,19 +5,24 @@ const {handleMongooseError} = require("../middlewares");
 
 const contactSchema = new Schema({
         name: {
-          type: String,
-          required: [true, 'Set name for contact'],
+            type: String,
+            required: [true, 'Set name for contact'],
         },
         email: {
-          type: String,
+            type: String,
         },
         phone: {
-          type: String,
+            type: String,
         },
         favorite: {
-          type: Boolean,
-          default: false,
+            type: Boolean,
+            default: false,
         },
+        owner: {
+            type: Schema.Types.ObjectId,
+            ref: 'user',
+            required: true,
+        }
 }, {versionKey: false, timestamps: true})
 
 const Contact = model("contact", contactSchema);
@@ -28,6 +33,7 @@ const addSchema = Joi.object({
     name: Joi.string().required(),
     email: Joi.string(),
     phone: Joi.string(),
+    favorite: Joi.boolean(),
 });
 
 const updateFavoriteSchema = Joi.object({
